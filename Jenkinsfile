@@ -56,7 +56,7 @@ pipeline {
         
         failure {
             // Notifications for failed builds
-            mail to: 'team@example.com',
+            mail to: 'nikilprasannaks.22cse@kongu.edu',
                  subject: "Failed Pipeline: ${currentBuild.fullDisplayName}",
                  body: "Check ${env.BUILD_URL}"
         }
