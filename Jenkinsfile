@@ -1,59 +1,33 @@
 pipeline {
-    agent any
-
-    environment {
-        DOCKER_CREDENTIALS = credentials('cred-1')  // Docker Hub Credentials ID
+    agent {
+        docker {
+            image 'node:18' // Use your preferred Node version
+            args '-v $HOME/.npm:/root/.npm' // Optional: cache npm
+        }
     }
-
+    environment {
+        CI = 'true'
+    }
     stages {
         stage('Checkout') {
             steps {
-                checkout scm
+                git 'https://github.com/nikilprasannaks/123.git'
             }
         }
-
-        stage('Java Build') {
+        stage('Install Dependencies') {
             steps {
-                sh "mvn clean"
-                sh "mvn install"
+                sh 'npm install'
             }
         }
-
-        stage('Build Java Docker Image') {
+        stage('Run Unit Tests') {
             steps {
-                script {
-                    sh 'docker build -t pavishkumar/guvidevopswarsday1 .'
-                }
-            }
-        }
-
-        stage('Push Java Image to Docker Hub') {
-            steps {
-                script {
-                    docker.withRegistry('https://index.docker.io/v1/', 'cred-1') {
-                        sh 'docker push pavishkumar/guvidevopswarsday1'
-                    }
-                }
-            }
-        }
-
-        stage('Build and Test React App in Docker') {
-            steps {
-                sh 'docker build -t react-app-test .'
-                sh 'docker run --rm react-app-test'
+                sh 'npm test -- --watchAll=false'
             }
         }
     }
-
     post {
         always {
-            echo 'Tests completed.'
-        }
-        success {
-            echo 'Tests passed!'
-        }
-        failure {
-            echo 'Tests failed!'
+            junit '**/test-results/**/*.xml' // Optional: if using test reporters
         }
     }
 }
